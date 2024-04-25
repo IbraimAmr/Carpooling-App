@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:milestone2/pages/login_page.dart';
 
-import 'package:final_project/pages/Login.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'firebase_options.dart';
-
+import 'package:milestone2/pages/Sign_up.dart';
 //import 'package:milestone1/pages/account_page.dart';
 //import 'package:milestone1/pages/home_page.dart';
 //import 'package:milestone1/pages/payment_page.dart';

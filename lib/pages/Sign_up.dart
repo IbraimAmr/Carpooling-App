@@ -1,14 +1,11 @@
-import 'package:final_project/databaseHelper.dart';
 import 'package:flutter/material.dart';
-import 'package:final_project/global/gobal.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:final_project/pages/Login.dart';
-import 'package:final_project/databaseHelper.dart';
+import '../global/gobal.dart';
+import 'login_page.dart'; // Make sure to import the necessary files
 
 void main() {
-
   runApp(MyApp());
 }
 
@@ -32,34 +29,22 @@ class _SignUpPageState extends State<SignUpPage> {
   TextEditingController _emailController = TextEditingController();
   TextEditingController _passwordController = TextEditingController();
   TextEditingController _phoneController = TextEditingController();
-  TextEditingController _carTypeController = TextEditingController();
-  TextEditingController _carPlatesController = TextEditingController();
-  List<Map<String, dynamic>> myData =[];
-  bool _isloading = true;
 
-
-  validationForm() async {
+  validationForm() {
     if (_nameController.text.length < 2) {
       Fluttertoast.showToast(msg: "Name must be more than 2 characters");
     } else if (!_emailController.text.contains("@eng.asu.edu.eg")) {
-      Fluttertoast.showToast(msg: "Email address must be @eng.asu.edu.eg ");
+      Fluttertoast.showToast(msg: "Email address must be @eng.asu.edu.eg");
     } else if (_passwordController.text.length < 8) {
       Fluttertoast.showToast(msg: "Password must be at least 8 characters");
     } else if (_phoneController.text.isEmpty) {
       Fluttertoast.showToast(msg: "Fill in your phone number");
-    } else if (_carTypeController.text.isEmpty) {
-      Fluttertoast.showToast(msg: "Fill in the type of car");
-    } else if (_carPlatesController.text.isEmpty) {
-      Fluttertoast.showToast(msg: "Fill in the car plates");
     } else {
-
-      SavedriverInfo();
-
+      SaveUserInfo();
     }
   }
 
-  SavedriverInfo() async {
-
+  SaveUserInfo() async {
     final User? firebaseUser = (
         await FirebaseAuth.instance
             .createUserWithEmailAndPassword(
@@ -68,65 +53,35 @@ class _SignUpPageState extends State<SignUpPage> {
         )
             .catchError((msg) {
           Navigator.pop(context);
-          Fluttertoast.showToast(msg: "Error: " + msg.toString());
+          Fluttertoast.showToast(msg: "Error :" + msg.toString());
         })
     ).user;
 
     if (firebaseUser != null) {
-      Map drivermap = {
+      Map userMap = {
         "id": firebaseUser.uid,
         "name": _nameController.text.trim(),
         "email": _emailController.text.trim(),
         "phone": _phoneController.text.trim(),
-        "car_type": _carTypeController.text.trim(),
-        "car_plates": _carPlatesController.text.trim(),
       };
       DatabaseReference userRef =
-      FirebaseDatabase.instance.ref().child("drivers");
-      userRef.child(firebaseUser.uid).set(drivermap);
+      FirebaseDatabase.instance.reference().child("users");
+      userRef.child(firebaseUser.uid).set(userMap);
 
+      // Assuming currentFirebaseUser is a global variable
       currentFirebaseUser = firebaseUser;
+
       Fluttertoast.showToast(msg: "Account has been created successfully");
-      print(_phoneController);
-      //await addItem();
-      print("data saved");
       Navigator.push(
         context,
         MaterialPageRoute(builder: (c) => LoginPage()),
       );
-
     } else {
       Navigator.pop(context);
       Fluttertoast.showToast(
           msg: "Account hasn't been created, please try again...");
     }
   }
-
-
-  Future<void> addItem() async{
-    await DatabaseHelper.createItem(_nameController.text, _emailController.text,  _phoneController.text,
-        _carTypeController.text);
-    _refreshData();
-    print("data saved akheran");
-  }
-  void _refreshData() async{
-    final data = await DatabaseHelper.getItems();
-    setState(() {
-      myData = data;
-      _isloading = false;
-
-    });
-  }
-
-  @override
-  void initState(){
-    super.initState();
-    _refreshData();
-  }
-
-
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -159,14 +114,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 keyboardType: TextInputType.phone,
                 decoration: InputDecoration(labelText: 'Phone Number'),
               ),
-              TextField(
-                controller: _carTypeController,
-                decoration: InputDecoration(labelText: 'Type of Car'),
-              ),
-              TextField(
-                controller: _carPlatesController,
-                decoration: InputDecoration(labelText: 'Car Plates (3 letters and 3 numbers)'),
-              ),
               SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () {
@@ -176,8 +123,7 @@ class _SignUpPageState extends State<SignUpPage> {
                   primary: Colors.black,
                   minimumSize: Size(double.infinity, 50),
                 ),
-                child: Text('Sign Up',
-                    style: TextStyle(fontSize: 18, color: Colors.white)),
+                child: Text('Sign Up', style: TextStyle(fontSize: 18, color: Colors.white)),
               ),
             ],
           ),
@@ -186,4 +132,3 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 }
-

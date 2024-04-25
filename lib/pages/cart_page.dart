@@ -1,213 +1,174 @@
-/*import 'package:flutter/material.dart';
-/*
-void main() => runApp(MyApp());
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
-class MyApp extends StatelessWidget {
+class DriverDetailsPage extends StatefulWidget {
+  final Map<String, dynamic> rideDetails;
+  final String selectedDriverId;
+  final String driverId;
+  final String driverName;
+
+  DriverDetailsPage({
+    required this.rideDetails,
+    required this.selectedDriverId,
+    required this.driverId,
+    required this.driverName,
+  });
+
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: MyHomePage(),
-    );
+  _DriverDetailsPageState createState() => _DriverDetailsPageState();
+}
+
+class _DriverDetailsPageState extends State<DriverDetailsPage> {
+  Map<dynamic, dynamic>? driverDetails;
+  String selectedPaymentMethod = 'Cash';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDriverDetails();
   }
-}
-*/
-class CartPage extends StatefulWidget {
-  @override
-  _CartPageState createState() => _CartPageState();
-}
 
-class _CartPageState extends State<CartPage> {
-  String name = '';
-  String mobileNumber = '';
-  String pickupLocation = '';
-  String carmodel ='Mercedes';
-  String destination = '';
-  String paymentMethod = '';
+  Future<void> _fetchDriverDetails() async {
+    try {
+      DatabaseEvent event = await FirebaseDatabase.instance
+          .reference()
+          .child('drivers')
+          .child(widget.driverId)
+          .once();
+
+      DataSnapshot dataSnapshot = event.snapshot;
+
+      setState(() {
+        driverDetails = dataSnapshot.value as Map<dynamic, dynamic>?;
+      });
+    } catch (error) {
+      print('Error fetching driver details: $error');
+    }
+  }
+
+  Future<void> _saveRideToUserDatabase(String userId) async {
+    try {
+      DatabaseReference userRidesRef =
+      FirebaseDatabase.instance.reference().child('users/$userId/rides');
+
+      // Customize the ride data as needed
+      Map<String, dynamic> rideData = {
+        'driverId': widget.driverId,
+        'driverName': widget.driverName,
+        'paymentMethod': selectedPaymentMethod,
+        // Add more ride-related details
+      };
+
+      // Push the ride data to the user's 'rides' node
+      DatabaseReference newRideRef = userRidesRef.push();
+      await newRideRef.set(rideData);
+
+      // You can also perform any additional actions after saving the ride
+
+      print('Ride saved successfully!');
+    } catch (error) {
+      print('Error saving ride: $error');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('ASU Way'),
+        title: Text('Cart Page'),
         backgroundColor: Colors.black,
       ),
-      backgroundColor: Colors.grey[300],
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+        child: driverDetails != null
+            ? Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            TextField(
-              onChanged: (value) {
-                setState(() {
-                  name = value;
-                });
-              },
-              decoration: InputDecoration(labelText: 'Name'),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              onChanged: (value) {
-                setState(() {
-                  mobileNumber = value;
-                });
-              },
-              decoration: InputDecoration(labelText: 'Mobile Number'),
-              keyboardType: TextInputType.phone,
-            ),
-            SizedBox(height: 10),
-            TextField(
-              onChanged: (value) {
-                setState(() {
-                  pickupLocation = value;
-                });
-              },
-              decoration: InputDecoration(labelText: 'Pickup Location'),
-            ),
-            SizedBox(height: 10),
-            TextField(
-              onChanged: (value) {
-                setState(() {
-                  destination = value;
-                });
-              },
-              decoration: InputDecoration(labelText: 'destination'),
-            ),
-
-
-            SizedBox(height: 10),
-            TextField(
-              onChanged: (value) {
-                setState(() {
-                  carmodel = value;
-                });
-              },
-              decoration: InputDecoration(labelText: 'car model'),
-            ),
-            SizedBox(height: 20),
-            Text('Payment Method:'),
-            Row(
-              children: [
-                Radio(
-                  value: 'Visa',
-                  groupValue: paymentMethod,
-                  onChanged: (value) {
-                    setState(() {
-                      paymentMethod = value.toString();
-                    });
-                  },
-                ),
-                Text('Visa'),
-                Radio(
-                  value: 'Cash',
-                  groupValue: paymentMethod,
-                  onChanged: (value) {
-                    setState(() {
-                      paymentMethod = value.toString();
-                    });
-                  },
-                ),
-                Text('Cash'),
-              ],
-            ),
-            SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () {
-
-                // Implement your confirmation logic here
-                print('Name: $name');
-                print('Mobile Number: $mobileNumber');
-                print('Pickup Location: $pickupLocation');
-                print('Destination: $destination');
-                print('Payment Method: $paymentMethod');
-              },
-              style: ElevatedButton.styleFrom(
-                primary: Colors.black,
-                minimumSize: Size(double.infinity, 50),
+            Text(
+              'Driver Name: ${widget.driverName}',
+              style: TextStyle(
+                fontSize: 28,
+                fontWeight: FontWeight.bold,
               ),
-              child: Text('Confirm'),
+            ),
+            Text(
+              'Driver Email: ${driverDetails!['email'] ?? 'N/A'}',
+              style: TextStyle(
+                fontSize: 18,
+              ),
+            ),
+            Text(
+              'Driver Phone: ${driverDetails!['phone'] ?? 'N/A'}',
+              style: TextStyle(
+                fontSize: 18,
+              ),
+            ),
+            Text(
+              'Car Type: ${driverDetails!['car_type'] ?? 'N/A'}',
+              style: TextStyle(
+                fontSize: 18,
+              ),
+            ),
+            Text(
+              'Car Plates: ${driverDetails!['car_plates'] ?? 'N/A'}',
+              style: TextStyle(
+                fontSize: 18,
+              ),
+            ),
+            SizedBox(height: 16),
+            // Payment method dropdown
+            Text(
+              'Select Payment Method:',
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            DropdownButton<String>(
+              value: selectedPaymentMethod,
+              onChanged: (String? newValue) {
+                setState(() {
+                  selectedPaymentMethod = newValue!;
+                });
+              },
+              items: ['Cash', 'Visa'].map<DropdownMenuItem<String>>(
+                    (String value) {
+                  return DropdownMenuItem<String>(
+                    value: value,
+                    child: Text(value),
+                  );
+                },
+              ).toList(),
+            ),
+            SizedBox(height: 16),
+            Spacer(),
+            // Use Container to make the button span the width and set the color
+            Container(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  // Retrieve the currently logged-in user
+                  User? user = FirebaseAuth.instance.currentUser;
+                  if (user != null) {
+                    _saveRideToUserDatabase(user.uid);
+                  } else {
+                    print('User not logged in');
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  primary: Colors.black, // Set button color to black
+                ),
+                child: Text(
+                  'Confirm Ride',
+                  style: TextStyle(color: Colors.white), // Set text color to white
+                ),
+              ),
             ),
           ],
-        ),
-      ),
-    );
-  }
-}
-*/
-import 'package:flutter/material.dart';
-
-class CartPage extends StatelessWidget {
-  final List<Map<String, String>> drivers = [
-    {
-      'name': 'Ibrahim Amr',
-      'source': 'Madinaty',
-      'destination': 'ASU Gate 3',
-      'carModel': 'Mercedes',
-      'licensePlate': 'ABC1234',
-      'carColor': 'Black',
-      'timing': '8:00 AM',
-    },
-
-    // Add more drivers with similar structure
-  ];
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Driver Details'),
-        backgroundColor: Colors.black, // Set the appbar background color to black
-      ),
-      backgroundColor: Colors.grey[300],
-      body: Container(
-
-        padding: EdgeInsets.all(16),
-        child: ListView.builder(
-          itemCount: drivers.length,
-          itemBuilder: (BuildContext context, int index) {
-            return Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Container(
-                padding: EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey), // Grey border
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Driver Name: ${drivers[index]['name']}',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                    SizedBox(height: 8),
-                    Text('Source Location: ${drivers[index]['source']}'),
-                    Text('Destination: ${drivers[index]['destination']}'),
-                    SizedBox(height: 8),
-                    Text('Car Information:'),
-                    Text('Model: ${drivers[index]['carModel']}'),
-                    Text('License Plate: ${drivers[index]['licensePlate']}'),
-                    Text('Color: ${drivers[index]['carColor']}'),
-                    SizedBox(height: 8),
-                    Text('Timing: ${drivers[index]['timing']}'),
-                    SizedBox(height: 12), // Adjust the button position
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () {
-
-                        },
-                        style: ElevatedButton.styleFrom(
-                          primary: Colors.black, // Change button color to green
-                        ),
-                        child: Text('Share the ride', style: TextStyle(fontSize: 16)),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
+        )
+            : Center(
+          child: CircularProgressIndicator(),
         ),
       ),
     );

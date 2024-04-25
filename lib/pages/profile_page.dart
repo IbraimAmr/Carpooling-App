@@ -1,77 +1,94 @@
-
-import 'package:final_project/databaseHelper.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:final_project/databaseHelper.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 
-void main() {
-  runApp(MyApp());
+class ProfilePage extends StatefulWidget {
+  @override
+  _ProfilePageState createState() => _ProfilePageState();
 }
 
-class MyApp extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: DriverInfoPage(),
-    );
-  }
-}
-class DriverInfoPage extends StatefulWidget {
-  const DriverInfoPage({super.key});
+class _ProfilePageState extends State<ProfilePage> {
+  final DatabaseReference usersReference =
+  FirebaseDatabase.instance.reference().child('users');
+
+  late User? _user;
+  Map<String, dynamic>? _userData;
 
   @override
-  _DriverInfoState createState() => _DriverInfoState();
-
-}
-
-class _DriverInfoState extends State<DriverInfoPage> {
-  final user = FirebaseAuth.instance.currentUser!;
-  List<Map<String, dynamic>> myData =[];
-  bool _isloading = false;
-
-  @override
-  void initState(){
+  void initState() {
     super.initState();
-    _refreshData();
+    _user = FirebaseAuth.instance.currentUser;
+    if (_user != null) {
+      _fetchUserData();
+    }
   }
 
-  void _refreshData() async {
-    final data = await DatabaseHelper.getUser(user.email!);
-    setState((){
-      myData = data;
-      _isloading = false;
-    });
+  Future<void> _fetchUserData() async {
+    try {
+      // Use onValue to listen for changes and retrieve a DatabaseEvent
+      usersReference.child(_user!.uid).onValue.listen((event) {
+        // Extract DataSnapshot from DatabaseEvent
+        DataSnapshot dataSnapshot = event.snapshot;
 
+        // Check if the snapshot has data
+        if (dataSnapshot.value != null) {
+          // Convert dynamic to Map<String, dynamic>
+          Map<String, dynamic> userData =
+          (dataSnapshot.value as Map<dynamic, dynamic>)
+              .cast<String, dynamic>();
 
+          setState(() {
+            _userData = userData;
+          });
+        }
+      });
+    } catch (error) {
+      print('Error fetching user data: $error');
+    }
   }
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey[300],
       appBar: AppBar(
-        title: Text('Driver Information'),
+        backgroundColor: Colors.black,
+        title: Text('Profile'),
       ),
-      body: Padding(
+      body: _userData != null
+          ? Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            //Text('User ID: ${_user!.uid}'),
             Text(
-              'Driver Name: John Doe',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              'Name: ${_userData!['name'] ?? 'N/A'}',
+              style: TextStyle(
+                fontSize: 28, // Set the desired font size
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            SizedBox(height: 20),
-            for (var data in myData)
-              if (data.containsKey('Phone') && data['Phone'] != null)
-                Text(
-                  'Phone : ${data['Phone']}',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
+
+            Text('Email: ${_userData!['email'] ?? 'N/A'}',
+              style: TextStyle(
+              fontSize: 18, // Set the desired font size
+
+            ),),
+            Text('Phone number: ${_userData!['phone'] ?? 'N/A'}',
+              style: TextStyle(
+                fontSize: 18, // Set the desired font size
+
+              ),),
+
+            // Display additional user-related details
+            // Add more fields as needed
           ],
         ),
+      )
+          : Center(
+        child: CircularProgressIndicator(),
       ),
     );
   }
-
 }

@@ -56,7 +56,7 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions android = FirebaseOptions(
     apiKey: 'AIzaSyC3g-QJ_hOlSCKpC31nqHfx5YFkHTuuc_8',
-    appId: '1:695546650176:android:5362273daa46031344c9a5',
+    appId: '1:695546650176:android:488d14c901b164f644c9a5',
     messagingSenderId: '695546650176',
     projectId: 'projectx-824c7',
     databaseURL: 'https://projectx-824c7-default-rtdb.firebaseio.com',
@@ -65,21 +65,21 @@ class DefaultFirebaseOptions {
 
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyB3OlNCg-jD1B_os_i1f297H7qUO9vG4t4',
-    appId: '1:695546650176:ios:73cc72e35d4697b344c9a5',
+    appId: '1:695546650176:ios:26974bfcc45df00344c9a5',
     messagingSenderId: '695546650176',
     projectId: 'projectx-824c7',
     databaseURL: 'https://projectx-824c7-default-rtdb.firebaseio.com',
     storageBucket: 'projectx-824c7.appspot.com',
-    iosBundleId: 'com.example.finalProject',
+    iosBundleId: 'com.example.milestone2',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
     apiKey: 'AIzaSyB3OlNCg-jD1B_os_i1f297H7qUO9vG4t4',
-    appId: '1:695546650176:ios:56ee242c221d561744c9a5',
+    appId: '1:695546650176:ios:1db0fb40a4400a7f44c9a5',
     messagingSenderId: '695546650176',
     projectId: 'projectx-824c7',
     databaseURL: 'https://projectx-824c7-default-rtdb.firebaseio.com',
     storageBucket: 'projectx-824c7.appspot.com',
-    iosBundleId: 'com.example.finalProject.RunnerTests',
+    iosBundleId: 'com.example.milestone2.RunnerTests',
   );
 }
